@@ -8,7 +8,9 @@ class Program
     static void Main(string[] args)
     {
 
-        var NAME_PROGRAM_TO_RUN = "2025_2_p1";
+        var NAME_PROGRAM_TO_RUN = "2025_2_p2";
+
+        System.Console.WriteLine("Running program: " + NAME_PROGRAM_TO_RUN);
 
         var runner = new ProgramRunner();
 
@@ -25,6 +27,11 @@ class Program
             case "2025_2_p1":
                 runner.program_2025_2_p1();
                 break;
+
+            case "2025_2_p2":
+                runner.program_2025_2_p2();
+                break;
+
 
             default:
                 Console.WriteLine("Set up var to execute: NAME_PROGRAM_TO_RUN.");
@@ -53,7 +60,7 @@ class ProgramRunner
 
             for (int i = 1; i < line.Length; i++) number = number * 10 + (line[i] - '0');
 
-            arrowValue +=  (number * turn);
+            arrowValue += (number * turn);
 
             arrowValue %= 100;
             if (arrowValue < 0) arrowValue += 100;
@@ -83,7 +90,7 @@ class ProgramRunner
 
             for (int i = 1; i < line.Length; i++) number = number * 10 + (line[i] - '0');
 
-            for(int i = 0; i < number; i++)
+            for (int i = 0; i < number; i++)
             {
                 arrowValue += turn;
                 arrowValue %= 100;
@@ -134,8 +141,8 @@ class ProgramRunner
                         }
                     }
 
-                    
-                    if (isTwice)sum += i;
+
+                    if (isTwice) sum += i;
                 }
             }
         }
@@ -148,17 +155,13 @@ class ProgramRunner
         string path = "files\\data_2025_2.txt";
 
         var lines = File.ReadAllLines(path);
-        List<string[]> rows = new List<string[]>();
 
         foreach (string line in lines)
         {
-            rows.Add(line.Split(','));
-        }
-
-        foreach (string[] row in rows)
-        {
-            foreach (string range in row)
+            foreach (string range in line.Split(','))
             {
+                if (string.IsNullOrWhiteSpace(range)) continue;
+
                 string[] values = range.Split('-');
                 long start = long.Parse(values[0]);
                 long end = long.Parse(values[1]);
@@ -172,42 +175,31 @@ class ProgramRunner
 
                     for (int step = 1; step <= len / 2; step++)
                     {
-                        if (len % step != 0)continue;
+                        if (len % step != 0) continue;
+                        if (len / step < 2) continue;
 
-                        bool matches = true;
-                        int cursor = step;
+                        bool patternFound = true;
 
-                        while (cursor < len)
+                        for (int i = step; i < len; i++)
                         {
-                            for (int j = 0; j < step; j++)
+                            if (stringNumber[i] != stringNumber[i - step])
                             {
-                                if (stringNumber[j] != stringNumber[cursor + j])
-                                {
-                                    matches = false;
-                                    break;
-                                }
+                                patternFound = false;
+                                break;
                             }
-
-                            if (!matches)break;
-                            cursor += step;
                         }
-
-                        if (matches)
+                        if (patternFound)
                         {
                             isPattern = true;
-                            break;
+                            break; 
                         }
                     }
-
-                    if (isPattern)
-                        sum += numberToCheck;
+                    if (isPattern)sum += numberToCheck;
                 }
             }
         }
+
         Console.WriteLine("Added up all invalid indexes: " + sum);
     }
-
-
-
 
 }
