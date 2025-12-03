@@ -8,7 +8,7 @@ class Program
     static void Main(string[] args)
     {
 
-        var NAME_PROGRAM_TO_RUN = "2025_2_p2";
+        var NAME_PROGRAM_TO_RUN = "2025_3_p2";
 
         System.Console.WriteLine("Running program: " + NAME_PROGRAM_TO_RUN);
 
@@ -32,6 +32,13 @@ class Program
                 runner.program_2025_2_p2();
                 break;
 
+            case "2025_3_p1":
+                runner.program_2025_3_p1();
+                break;
+
+            case "2025_3_p2":
+                runner.program_2025_3_p2();
+                break;
 
             default:
                 Console.WriteLine("Set up var to execute: NAME_PROGRAM_TO_RUN.");
@@ -201,5 +208,76 @@ class ProgramRunner
 
         Console.WriteLine("Added up all invalid indexes: " + sum);
     }
+    public void program_2025_3_p1()
+    {
+        long sumOfJolts = 0;
+        int maximumJolts = 0;
+        string path = "files\\data_2025_3.txt";
+
+        var lines = File.ReadAllLines(path);
+
+        foreach (string line in lines)
+        {
+            for (int i = 0; i < line.Length-1; i++)
+            {
+                for (int j = i+1; j < line.Length; j++)
+                {
+                    var number = (line[i] - '0') * 10 + (line[j] - '0');
+                    if (number>maximumJolts)
+                    {
+                        maximumJolts = number;
+                    }
+                }
+                    
+                    
+            }
+            sumOfJolts += maximumJolts;
+            maximumJolts = 0;
+        }
+        Console.WriteLine("Sum of maximum jolts: " + sumOfJolts);
+    }
+
+    public void program_2025_3_p2()
+    {
+        long sum = 0;
+        string path = "files\\data_2025_3.txt";
+
+        var lines = File.ReadAllLines(path);
+
+        foreach (string line in lines)
+        {
+            int[] indexesOfBatterys = new int[12];
+            int start = 0;
+
+            for (int i = 0; i < 12; i++)
+            {
+                int bestIndex = start;
+                int end = line.Length - (12 - i);
+
+                for (int j = start; j <= end; j++)
+                {
+                    if (line[j] > line[bestIndex])
+                    {
+                        bestIndex = j;
+                    }
+                }
+
+                indexesOfBatterys[i] = bestIndex;
+                start = bestIndex + 1;
+            }
+
+            long numberToAdd = 0;
+
+            for (int i = 0; i < 12; i++)
+            {
+                numberToAdd = numberToAdd * 10 + (line[indexesOfBatterys[i]] - '0');
+            }
+
+            sum += numberToAdd;
+        }
+
+        Console.WriteLine("Sum of all batteries: " + sum);
+    }
+
 
 }
