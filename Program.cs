@@ -11,7 +11,7 @@ class Program
     static void Main(string[] args)
     {
 
-        var NAME_PROGRAM_TO_RUN = "2025_7_p1_visual";
+        var NAME_PROGRAM_TO_RUN = "2025_8_p1";
 
         System.Console.WriteLine("Running program: " + NAME_PROGRAM_TO_RUN);
 
@@ -77,6 +77,14 @@ class Program
 
             case "2025_7_p2":
                 runner.program_2025_7_p2();
+                break;
+
+            case "2025_8_p1":
+                runner.program_2025_8_p1();
+                break;
+
+            case "2025_8_p2":
+                runner.program_2025_8_p2();
                 break;
 
             default:
@@ -488,7 +496,7 @@ class ProgramRunner
         var lines = File.ReadAllLines(path);
 
         List<(long start, long end)> ranges = new List<(long, long)>();
-        
+
 
         foreach (var line in lines)
         {
@@ -533,19 +541,19 @@ class ProgramRunner
         for (int i = 0; i < 4; i++)
         {
             List<long> numbers = lines[i]
-                .Split(new[] { ' '}, StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(long.Parse)
                 .ToList();
-            
+
             numbersInColumns.Add(numbers);
         }
         operators = lines[4]
         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
         .ToList();
 
-        for(int i = 0; i < numbersInColumns[0].Count; i++)
+        for (int i = 0; i < numbersInColumns[0].Count; i++)
         {
-            for(int j = 0; j<4; j++)
+            for (int j = 0; j < 4; j++)
             {
                 if (operators[i] == "+")
                 {
@@ -593,7 +601,7 @@ class ProgramRunner
             {
                 numbers.Add(int.Parse(tmpStringNumber.Trim()));
             }
-            else 
+            else
             {
                 if (operators[cursorOperator] == "+")
                 {
@@ -675,12 +683,12 @@ class ProgramRunner
                     {
                         if (lines[i][j] == '^')
                         {
-                            if(j - 1 >= 0)
+                            if (j - 1 >= 0)
                             {
                                 nextBeams.Add(j - 1);
                                 lines[i][j - 1] = '|';
                             }
-                            if(j + 1 < lengthOfBeam)
+                            if (j + 1 < lengthOfBeam)
                             {
                                 nextBeams.Add(j + 1);
                                 lines[i][j + 1] = '|';
@@ -717,7 +725,7 @@ class ProgramRunner
         var beamIndexes = new HashSet<int>();
 
         int step = 0;
-        PrintState(lines, step); 
+        PrintState(lines, step);
 
         for (int i = 0; i < lenghtOfLines; i++)
         {
@@ -735,7 +743,7 @@ class ProgramRunner
                 {
                     if (beamIndexes.Contains(j))
                     {
-                        if (lines[i][j] == '^')  
+                        if (lines[i][j] == '^')
                         {
                             if (j - 1 >= 0)
                             {
@@ -761,7 +769,7 @@ class ProgramRunner
                 beamIndexes = nextBeams;
             }
 
-            PrintState(lines, ++step); 
+            PrintState(lines, ++step);
         }
 
         Console.WriteLine("Total beam splits: " + totalBeamSplits);
@@ -772,7 +780,7 @@ class ProgramRunner
         Console.WriteLine($"STEP: {step}");
         foreach (var line in board)
             Console.WriteLine(line.ToString());
-        Thread.Sleep(150); 
+        Thread.Sleep(20);
     }
 
     public void program_2025_7_p2()
@@ -804,14 +812,14 @@ class ProgramRunner
                 int index = pair.Key;
                 long value = pair.Value;
 
-                if (lines[i][index] == '^') 
+                if (lines[i][index] == '^')
                 {
                     if (index - 1 >= 0)
                         nextBeamPositions[index - 1] = nextBeamPositions.GetValueOrDefault(index - 1, 0) + value;
                     if (index + 1 < lengthOfBeam)
                         nextBeamPositions[index + 1] = nextBeamPositions.GetValueOrDefault(index + 1, 0) + value;
                 }
-                else 
+                else
                 {
                     nextBeamPositions[index] = nextBeamPositions.GetValueOrDefault(index, 0) + value;
                 }
@@ -822,6 +830,85 @@ class ProgramRunner
 
         long totalTimelines = beamPositions.Values.Sum();
         Console.WriteLine("Total timelines: " + totalTimelines);
+    }
+    public class Point3D
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Z { get; set; }
+    }
+    public class Connection
+    {
+        public Point3D startPoint { get; set; }
+        public Point3D endPoint { get; set; }
+
+    }
+    public void program_2025_8_p1()
+    {
+
+        List<Point3D> points = new List<Point3D>();
+
+        List<List<Connection>> circouts = new List<List<Connection>>();
+
+        string path = "files\\data_2025_8.txt";
+        var lines = File.ReadAllLines(path);
+
+        foreach (var line in lines)
+        {
+            var parts = line.Split(',');
+            Point3D point = new Point3D
+            {
+                X = double.Parse(parts[0]),
+                Y = double.Parse(parts[1]),
+                Z = double.Parse(parts[2])
+            };
+            points.Add(point);
+        }
+
+        
+
+        for(int l=0; l < 1000; l++)
+        {
+            double minDistance = 1000000000.0;
+            Connection selectedConnection = null;   
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                for (int j = i + 1; j < points.Count; j++)
+                {
+                    double distance = Math.Sqrt(
+                        Math.Pow(points[i].X - points[j].X, 2) +
+                        Math.Pow(points[i].Y - points[j].Y, 2) +
+                        Math.Pow(points[i].Z - points[j].Z, 2)
+                    );
+                    if (minDistance == 0.0 || distance < minDistance)
+                    {
+                        foreach(var connection in circouts)
+                        {
+
+                        }
+                        minDistance = distance;
+                        selectedConnection = new Connection
+                        {
+                            startPoint = points[i],
+                            endPoint = points[j]
+                        };  
+                        
+                        
+                    }
+                }
+            }
+
+        }
+
+        
+
+
+    }
+
+    public void program_2025_8_p2()
+    {
+
     }
 }
 
