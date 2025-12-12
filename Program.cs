@@ -10,7 +10,7 @@ namespace AOC2025
     {
         static void Main(string[] args)
         {
-            Day9.SolvePart1();
+            Day9.SolvePart2();
         }
     }
    
