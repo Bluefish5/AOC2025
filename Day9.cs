@@ -1,21 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace AOC2025
 {
-    class Point2D
-    {
-        public long X { get; set; }
-        public long Y { get; set; }
-        public Point2D(long x, long y)
-        {
-            X = x;
-            Y = y;
-        }
-    }
+    
     public static class Day9
     {
         public static void SolvePart1()
@@ -23,20 +15,22 @@ namespace AOC2025
             string path = "files\\data_2025_9.txt";
             var lines = File.ReadAllLines(path);
 
-            var points = new List<Point2D>();
+            var points = new List<Point>();
 
             long maxArea = 0;
 
             foreach (var line in lines)
             {
-                if (string.IsNullOrWhiteSpace(line)) continue; 
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
                 var parts = line.Split(',');
                 int x = int.Parse(parts[0]);
                 int y = int.Parse(parts[1]);
 
-                points.Add(new Point2D(x, y));
+                points.Add(new Point(x, y));
             }
+
+
 
             for (int i = 0; i < points.Count; i++)
             {
@@ -52,15 +46,13 @@ namespace AOC2025
 
             Console.WriteLine($"Max Area: {maxArea}");
         }
-
         public static void SolvePart2()
         {
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-
             string path = "files\\data_2025_9.txt";
             var lines = File.ReadAllLines(path);
 
-            var points = new List<Point2D>();
+            var redPoints = new List<Point>();
+
             long maxArea = 0;
 
             foreach (var line in lines)
@@ -71,141 +63,137 @@ namespace AOC2025
                 int x = int.Parse(parts[0]);
                 int y = int.Parse(parts[1]);
 
-                points.Add(new Point2D(x, y));
+                redPoints.Add(new Point(x, y));
             }
 
-            // =============================================
-            // 1. GREEN POINTS ON SEGMENTS
-            // =============================================
-            Console.WriteLine("ETAP 1: Generowanie zielonych punktów na segmentach...");
+            System.Console.WriteLine("Red Points count: " + redPoints.Count);
 
-            var green = new HashSet<(long x, long y)>();
-            var red = new HashSet<(long x, long y)>();
+            var maxAreaDict = new Dictionary<(Point A, Point B), long>();
 
-            foreach (var p in points)
-                red.Add((p.X, p.Y));
-
-            for (int i = 0; i < points.Count; i++)
+            for (int i = 0; i < redPoints.Count; i++)
             {
-                int j = (i + 1) % points.Count;
-                var a = points[i];
-                var b = points[j];
-
-                if (a.X == b.X)
+                for (int j = i + 1; j < redPoints.Count; j++)
                 {
-                    long x = a.X;
-                    long y1 = Math.Min(a.Y, b.Y);
-                    long y2 = Math.Max(a.Y, b.Y);
+                    long dx = Math.Abs((long)redPoints[i].X - redPoints[j].X) + 1;
+                    long dy = Math.Abs((long)redPoints[i].Y - redPoints[j].Y) + 1;
 
-                    for (long y = y1; y <= y2; y++)
-                        green.Add((x, y));
-                }
-                else // horizontal
-                {
-                    long y = a.Y;
-                    long x1 = Math.Min(a.X, b.X);
-                    long x2 = Math.Max(a.X, b.X);
+                    long area = dx * dy;
+                    maxAreaDict[(redPoints[i], redPoints[j])] = area;
 
-                    for (long x = x1; x <= x2; x++)
-                        green.Add((x, y));
                 }
             }
-            Console.WriteLine("ETAP 1 zakończony.\n");
+            maxAreaDict = maxAreaDict.OrderByDescending(c => c.Value).ToDictionary();
 
-            // =============================================
-            // 2. FILL INTERIOR USING FAST SCANLINE
-            // =============================================
-            Console.WriteLine("ETAP 2: Wypełnianie wnętrza pętli (scanline fill)...");
+            (redPoints, maxAreaDict) = CompressTiles(redPoints, maxAreaDict);
 
-            long minX = points.Min(p => p.X);
-            long maxX = points.Max(p => p.X);
-            long minY = points.Min(p => p.Y);
-            long maxY = points.Max(p => p.Y);
+            var edges = GetEdges(redPoints);
 
-            int lastPercent = -1;
+            var maxAreaResoult = FindLargestSquareInShape(redPoints,maxAreaDict, edges); 
+            Console.WriteLine("Part 2: " + maxAreaResoult);
 
-            for (long y = minY; y <= maxY; y++)
-            {
-                // znajdź wszystkie zielone punkty w tym wierszu
-                var xs = green.Where(p => p.y == y).Select(p => p.x).OrderBy(x => x).ToList();
-                if (xs.Count < 2) continue;
 
-                for (int k = 0; k < xs.Count - 1; k += 2) // pary start-stop
-                {
-                    long startX = xs[k];
-                    long endX = xs[k + 1];
-
-                    for (long x = startX; x <= endX; x++)
-                        green.Add((x, y));
-                }
-
-                // postęp
-                int percent = (int)((y - minY) * 100 / (maxY - minY + 1));
-                if (percent != lastPercent)
-                {
-                    Console.Write($"\r  progress: {percent}%   ");
-                    lastPercent = percent;
-                }
-            }
-            Console.WriteLine("\nETAP 2 zakończony.\n");
-
-            // =============================================
-            // 3. CHECK RECTANGLES
-            // =============================================
-            Console.WriteLine("ETAP 3: Sprawdzanie prostokątów...");
-
-            long totalRects = (long)points.Count * (points.Count - 1) / 2;
-            long rectDone = 0;
-            lastPercent = -1;
-
-            for (int i = 0; i < points.Count; i++)
-            {
-                for (int j = i + 1; j < points.Count; j++)
-                {
-                    rectDone++;
-                    int percent = (int)(rectDone * 100 / totalRects);
-                    if (percent != lastPercent)
-                    {
-                        Console.Write($"\r  progress: {percent}%   ");
-                        lastPercent = percent;
-                    }
-
-                    var a = points[i];
-                    var b = points[j];
-
-                    long left = Math.Min(a.X, b.X);
-                    long right = Math.Max(a.X, b.X);
-                    long bottom = Math.Min(a.Y, b.Y);
-                    long top = Math.Max(a.Y, b.Y);
-
-                    bool ok = true;
-
-                    for (long xCheck = left; xCheck <= right && ok; xCheck++)
-                    {
-                        for (long yCheck = bottom; yCheck <= top && ok; yCheck++)
-                        {
-                            if (!green.Contains((xCheck, yCheck)) && !red.Contains((xCheck, yCheck)))
-                            {
-                                ok = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (ok)
-                    {
-                        long area = (right - left + 1) * (top - bottom + 1);
-                        if (area > maxArea)
-                            maxArea = area;
-                    }
-                }
-            }
-            Console.WriteLine("\nETAP 3 zakończony.\n");
-
-            Console.WriteLine($"Max Area Part2: {maxArea}");
-            sw.Stop();
-            Console.WriteLine($"Czas wykonania: {sw.Elapsed}");
         }
+
+        public static (List<Point> compressTiles,Dictionary<(Point, Point), long>) CompressTiles(List<Point> tiles,Dictionary<(Point, Point), long> squares)
+        {
+            var uniqueX = tiles.Select(t => t.X).Distinct().OrderBy(x => x);
+            var uniqueY = tiles.Select(t => t.Y).Distinct().OrderBy(y => y);
+
+            var xMap = uniqueX.Select((v, i) => new { v, i }).ToDictionary(c => c.v, c => c.i);
+            var yMap = uniqueY.Select((v, i) => new { v, i }).ToDictionary(c => c.v, c => c.i);
+
+            var newTiles = tiles.Select(t => new Point(xMap[t.X], yMap[t.Y])).ToList();
+
+            var newSquares = squares.ToDictionary(c => (new Point(xMap[c.Key.Item1.X], yMap[c.Key.Item1.Y]),new Point(xMap[c.Key.Item2.X], yMap[c.Key.Item2.Y])),c => c.Value);
+
+            return (newTiles, newSquares);
+        }
+
+        static public HashSet<Point> GetEdges(List<Point> redPoints)
+        {
+            System.Console.WriteLine($"Getting Redtiles:{redPoints.Count}");
+
+            HashSet<Point> edges = new HashSet<Point>();
+            for (int i = 0; i < redPoints.Count; i++)
+            {
+                var t1 = redPoints[i];
+                var t2 = redPoints[(i + 1) % redPoints.Count];
+                if (t1.X == t2.X)
+                {
+                    var minY = Math.Min(t1.Y, t2.Y);
+                    var maxY = Math.Max(t1.Y, t2.Y);
+
+                    for (int y = minY; y <= maxY; y++)
+                    {
+                        edges.Add(new Point(t1.X, y));
+                    }
+                }
+                else if (t1.Y == t2.Y)
+                {
+                    var minX = Math.Min(t1.X, t2.X);
+                    var maxX = Math.Max(t1.X, t2.X);
+
+                    for (int x = minX; x <= maxX; x++)
+                    {
+                        edges.Add(new Point(x, t1.Y));
+                    }
+                }
+            }
+            return edges;
+        }
+
+        static bool TestSquare(List<Point> square, HashSet<Point> edges)
+        {
+            for (int i = 0; i < square.Count; i++)
+            {
+                var t1 = square[i];
+                var t2 = square[(i + 1) % square.Count];
+
+                var minY = Math.Min(t1.Y, t2.Y);
+                var maxY = Math.Max(t1.Y, t2.Y);
+                var minX = Math.Min(t1.X, t2.X);
+                var maxX = Math.Max(t1.X, t2.X);
+
+                for (int x = minX + 1; x < maxX; x++)
+                {
+                    if (edges.Contains(new Point(x, minY + 1)) || edges.Contains(new Point(x, maxY - 1)))
+                        return false;
+                }
+                for (int y = minY + 1; y < maxY; y++)
+                {
+                    if (edges.Contains(new Point(minX + 1, y)) || edges.Contains(new Point(maxX - 1, y)))
+                        return false;
+                }
+            }
+            return true;
+        }
+        static long FindLargestSquareInShape(
+            List<Point> tiles,
+            Dictionary<(Point, Point), long> squares,
+            HashSet<Point> edges)
+        {
+
+            foreach (var square in squares)
+            {
+                var p1 = square.Key.Item1;
+                var p2 = square.Key.Item2;
+
+                var testPoint1 = new Point(p1.X, p2.Y);
+                var testPoint2 = new Point(p2.X, p1.Y);
+
+                if (!TestSquare(new List<Point> { p1, p2 }, edges))
+                    continue;
+
+                return square.Value;
+            }
+
+            return 0L;
+        }
+
+
+
+
+
 
 
     }
