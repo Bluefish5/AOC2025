@@ -53,8 +53,6 @@ namespace AOC2025
 
             var redPoints = new List<Point>();
 
-            long maxArea = 0;
-
             foreach (var line in lines)
             {
                 if (string.IsNullOrWhiteSpace(line)) continue;

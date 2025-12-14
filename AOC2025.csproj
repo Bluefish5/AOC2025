@@ -8,10 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Z3" Version="4.12.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="files\data_2025_1.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="files\data_2025_10.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="files\data_2025_11.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="files\data_2025_2.txt">
