@@ -60,7 +60,6 @@ namespace AOC2025
             string path = "files\\data_2025_11.txt";
             var lines = File.ReadAllLines(path);
 
-            // Tworzymy graf
             Dictionary<string, List<string>> dictionary = new Dictionary<string, List<string>>();
             foreach (var line in lines)
             {
@@ -74,7 +73,6 @@ namespace AOC2025
                 dictionary[key] = values;
             }
 
-            // Memoizacja: klucz = (currentNode, visitedDac, visitedFft)
             Dictionary<(string, bool, bool), long> memo = new Dictionary<(string, bool, bool), long>();
 
             long DFS(string currentNode, bool visitedDac, bool visitedFft)
